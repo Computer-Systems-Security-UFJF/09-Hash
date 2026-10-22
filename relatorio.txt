@@ -1,0 +1,76 @@
+Aluno:
+Luca Rodrigues Panza - 202465173AC
+
+--- Como a IA me auxiliou no desenvolvimento ---
+
+Defini como a atividade seria feita: um README com a explicação do
+SHA-256 seguindo o exemplo "red block blue" do vídeo, um notebook no
+mesmo molde dos exercícios anteriores com um hash simples em Python
+puro. A IA me ajudou a escrever o texto do passo a passo do SHA-256
+(padding, expansão das palavras, rodadas de compressão), o código do
+notebook (padding, hash por XOR bloco a bloco, hash com XOR e
+rotação, exemplos de avalanche e colisão) e a primeira versão da
+pesquisa sobre os algoritmos.
+
+As decisões de projeto foram minhas: escolhi fazer dois hashes para
+comparar, um só com XOR e outro com rotação, e usar blocos de 64
+bits para ficar fácil de acompanhar. A IA acelerou o código e a
+redação. A conferência dos resultados e a decisão do que entrava
+ficaram comigo.
+
+--- Visão Crítica ---
+
+As funções de hash mais usadas hoje pertencem a poucas famílias,
+cada uma com um histórico diferente de segurança.
+
+O MD5 (1992) produz 128 bits e ainda aparece em verificações de
+integridade de downloads e em sistemas antigos. É muito rápido, mas
+está quebrado para fins criptográficos: colisões podem ser geradas
+em segundos num computador comum, o que permite criar dois arquivos
+diferentes com o mesmo hash. Não deve ser usado para assinaturas nem
+para senhas.
+
+O SHA-1 (1995) gera 160 bits e foi padrão em certificados TLS e no
+Git. Em 2017 o ataque SHAttered demonstrou uma colisão prática, e
+desde então navegadores e autoridades certificadoras o abandonaram.
+Continua aceitável apenas onde só importa detectar corrupção
+acidental, não um adversário.
+
+O SHA-2 (SHA-256, SHA-384, SHA-512) é hoje o padrão de fato: protege
+TLS, Bitcoin, assinaturas digitais e pacotes de software. Não há
+ataques práticos conhecidos e a implementação é rápida, com
+aceleração em hardware nos processadores modernos. A principal
+fraqueza estrutural é o ataque de length extension, herdado da
+construção Merkle-Damgard: quem conhece H(m) consegue calcular
+H(m || extra) sem saber m. Por isso, para autenticação usa-se HMAC
+em vez de H(chave || mensagem).
+
+O SHA-3 (Keccak, 2015) tem construção diferente, a esponja, imune ao
+length extension, e serve como alternativa caso o SHA-2 venha a ser
+quebrado. Em software costuma ser mais lento que o SHA-256 e sua
+adoção ainda é menor.
+
+O BLAKE2 e o BLAKE3 são tão seguros quanto o SHA-3 na prática, mas
+muito mais rápidos em software; o BLAKE3 ainda paraleliza em vários
+núcleos. São usados em sistemas de arquivos, ferramentas de backup e
+dentro do Argon2. A desvantagem é não serem padrão NIST, o que pesa
+em ambientes regulados.
+
+Para senhas, hashes rápidos são uma fraqueza, pois facilitam ataques
+de força bruta. Usam-se então funções propositalmente lentas e que
+consomem memória: bcrypt, scrypt e Argon2, vencedor da Password
+Hashing Competition em 2015. Elas resistem a GPUs e ASICs ao custo
+de exigir ajuste de parâmetros e mais recursos do servidor.
+
+O que o notebook desta atividade mostra, em escala pequena, é por
+que esses algoritmos precisam ser tão elaborados. O hash só com XOR
+colide ao trocar a ordem dos blocos e muda um único bit da saída
+quando um bit da entrada muda. Acrescentar rotação e soma já leva a
+metade dos bits mudando, mas um estado de 64 bits continua pequeno
+demais para resistir a força bruta. O SHA-256 faz a mesma coisa em
+espírito, com 64 rodadas, oito palavras de estado e 256 bits de
+saída.
+
+Em resumo: MD5 e SHA-1 só para integridade sem adversário, SHA-256
+ou BLAKE2/3 para uso geral, HMAC para autenticação, Argon2 ou bcrypt
+para senhas.
